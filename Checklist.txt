@@ -1,0 +1,164 @@
+1.	(!!)
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - ???
+2.	($)
+	o	Normal - Done
+3.	(abs)
+	o	Normal - Done
+4.	All
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order – Done
+5.	And
+	o	List -Done
+	o	Recursion – Done
+	o	Higher Order – Done
+6.	Any
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order – Done
+7.	Compare
+	o	Normal - Done
+8.	Concat
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+9.	Break
+	o	Normal - Done
+10.	Curry
+	o	Normal - Done
+11.	Cycle
+	o	Normal - Done
+12.	Drop
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+13.	dropWhile
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+14.	Elem
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+15.	Filter
+	o	List – Done
+	o	Recursion – Done	
+	o	Higher Order - Done
+16.	Flip
+	o	Normal – Done
+17.	Foldl
+	o	Normal - Done
+18.	foldl1
+	o	Normal - Done
+19.	Foldr
+	o	Normal - Done
+20.	foldr1
+	o	Normal - Done
+21.	Fst
+	o	Normal - Done
+22.	Gcd
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - ???
+23.	Init
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+24.	Iterate
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - ???
+25.	Last
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+26.	Lcm
+	o	Normal - Done
+27.	Length
+	o	Normal - Done
+28.	Map
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+29.	Max
+	o	Normal - Done
+30.	Maximum
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+31.	Min
+	o	Normal - Done
+32.	Minimum
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+33.	notElem
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order – Done
+34.	Null
+	o	Normal - Done
+35.	Product
+	o	List – Done
+	o	Recursion -Done
+	o	Higher Order – Done
+36.	Repeat
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - ???
+37.	Replicate
+	o	List  - Done
+	o	Recursion – Done
+	o	Higher Order – Done
+38.	Reverse
+	o	List – Done
+	o	Recursion – Done
+	o	Higher Order - Done
+39.	Scanl
+	o	List - Done
+40.	scanl1
+	o	List - Done
+41.	Scanr
+	o	List - ???
+	o	Recursion – Done
+	o	Higher order - ???
+42.	scanr1
+	o	List - ???
+	o	Recursion – Done
+	o	Higher order - ???
+43.	splitAt
+	o	List - ???
+	o	Recursion – Done
+	o	Higher Order - ???
+44.	span
+45.	tail
+46.	take
+47.	takeWhile
+48.	until
+49.	unzip
+50.	unzip3
+51.	unwords
+52.	words
+53.	zip
+54.	zip3
+55.	zipWith
+56.	zipWith3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+57.	enumFrom
+58.	Fmap
+
