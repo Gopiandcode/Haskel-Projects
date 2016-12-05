@@ -314,3 +314,10 @@ rScanr :: (a -> b -> b) -> b -> [a] -> [b]
 rScanr f z [] = [z]
 rScanr f z (x:xs) = f x q : qs
                 where qs@(q:_) = rScanr f z xs
+
+rsplitAt :: (Eq a) => a -> [a] -> ([a], [a])
+rsplitAt x (xs) = (aux1 xs,aux2 xs)
+            where aux1 [] = []
+                  aux1 (b:bs) = if b /= x then b: (aux1 bs) else [b]
+                  aux2 [] = []
+                  aux2 (b:bs) = if b/= x then (aux2 bs) else bs
