@@ -8,13 +8,34 @@ Also, doesn't use the parsec library - all homegrown!
 
 Example Parsing:
 The String
+
+
       "while(x>0) x:=x+1"
- produces
-      (WhileLoop (BinOp Gt (Var "x") (Num 0)) (Assign (Var "x") (BinOp Add (Var "x") (Num 1))))
-or
-      if(x>0) then x:=x+1; else x:= 0;
+
+
+
 produces
-  (IfCond (BinOp Gt (Var "x") (Num 0)) (Assign (Var "x") (BinOp Add (Var "x") (Num 1))) (Assign (Var "x") (Num 0)))
+
+
+
+      (WhileLoop (BinOp Gt (Var "x") (Num 0)) (Assign (Var "x") (BinOp Add (Var "x") (Num 1))))
+
+
+
+or
+
+
+
+      if(x>0) then x:=x+1; else x:= 0;
+
+
+
+
+produces
+
+
+
+         (IfCond (BinOp Gt (Var "x") (Num 0)) (Assign (Var "x") (BinOp Add (Var "x") (Num 1))) (Assign (Var "x") (Num 0)))
  
  So it kinda works.
 Also, not entirely sure about the terminology, the grammar contains Left recursive structures so is the parser LR?
