@@ -41,7 +41,7 @@ produces
 Also, not entirely sure about the terminology, the grammar contains Left recursive structures so is the parser LR?
 Needs more research.
 
-# NewStuff: PreProcessor
+# New Stuff: PreProcessor
 ## A C-Preprocessor to work along side a C OOP library I'm building
 I'm currently working on a C OOP library to make my C code more portable for future coding sessions. As part of this effort, I've been working on implementing an OOP system in C - to make the process of coding in this framework easier, I'm building a preprocessor to generate the boilerplate code.
 Obviously, I'm making the parser for this boilerplate in Haskell - so far the parser is complete, just need to work on synthesizing the correct output.
@@ -88,3 +88,6 @@ which is then parsed into
        )
        
  So that's kinda half the battle down!
+ 
+ ## Update: C_Parser.hs and C.hs
+ Okay, I feel I should give some context to these two files (C.hs and C_Parser.hs), as they are some of the most arduous haskell code sections I have written. C.hs was written first, and uses the Parsec Library to Parse the C language. I found a Backaus Naur description of the C language online, which I found difficult to decipher due to the odd terms used to describe certain constructs, so I manually went through and simplified it. Unfortunately, unbeknownst to me at the time, while this simplification made the description easier to read for a human, it made it immensely more difficult to parse using haskell. Nevertheless I persistend and wrote up some Parsec-HAskell code to parse the language. Unfortunatly, after finishing the 1000 lines of code it took to do this, I found that there were bugs in my implementation, and due to the complex nature of the Parsec library, debugging it would not be feasible given the time frame I had allocated to myself for this project. As such, I rewrote the parser using standard Haskell functions only and thus C_Parser.hs was born. This version has some bugs, but is a whole lot easier to debug. I should fix it up soon.
