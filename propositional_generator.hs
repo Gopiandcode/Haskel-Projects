@@ -10,10 +10,10 @@ instance Show Variable where
         show R = "r"
 instance Show Formula where
         show (Literal a) = show a
-        show (Not a) = "-(" ++ show a ++ ")"
+        show (Not a) = "-" ++ show a ++ ""
         show (And a b) = "(" ++ (show a) ++ "^" ++ (show b) ++ ")"
         show (Or a b) = "(" ++ (show a) ++ "v" ++ (show b) ++ ")"
-        show (Implication a b) = "(" ++ (show a) ++ "->" ++ (show b) ++ ")"
+        show (Implication a b) = "(" ++ (show a) ++ ">" ++ (show b) ++ ")"
 
 
 data RndGen = RndGen Integer deriving Show
