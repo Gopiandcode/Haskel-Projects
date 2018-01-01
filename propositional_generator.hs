@@ -1,7 +1,7 @@
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
 
-data Variable = P | Q | R 
+data Variable = P | Q | R
 data Formula = Literal Variable | Not Formula | And Formula Formula | Or Formula Formula | Implication Formula Formula
 
 instance Show Variable where
@@ -36,6 +36,64 @@ randTrueFormula gen valuation = case evaluate valuation proposition of
                                               proposition = fst propositionRes
                                               finalGen = snd propositionRes
 
+randUnsatisfiableFormula :: RndGen -> (Formula, RndGen)
+randUnsatisfiableFormula gen = case ((fst res) `mod` 3) of
+                        0      -> (And (Literal P) (Not (Literal P)), snd res)
+                        1      -> (And (Literal R) (Not (Literal R)), snd res) 
+                        2      -> (And (Literal Q) (Not (Literal Q)), snd res)
+                        where res = next gen
+
+growUnsatisfiably :: (Formula, RndGen) -> (Formula, RndGen)
+growUnsatisfiably (formula, gen) = case formula of
+                Literal prop            -> case ((fst res) `mod` 3) of
+                                        0               -> (And (Literal prop) (Or (Literal newprop) (Not (Literal newprop))), snd fnl)
+                                        1               -> (Or  (Literal prop) (And (Literal newprop) (Not (Literal newprop))), snd fnl)
+                                        2               -> (And  (Literal prop) (Implication (Literal newprop) (Literal newprop)), snd fnl)
+                                        where res = next gen
+                                              fnl = randProposition (snd res)
+                                              newprop = fst fnl
+                Not    fmla             -> (Not (fst res), snd res)
+                                        where res = growUnsatisfiably (fmla, gen)
+                And formulaA formulaB   -> case ((fst res) `mod` 3) of
+                                        0               -> (And (And formulaA formulaB) (Not newformula), snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        1               -> (Or (And formulaA formulaB) (newformula), snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        2               -> (And newFormulaA newFormulaB, snd fnl)
+                                                         where newFormulaAres = growUnsatisfiably (formulaA, snd res)
+                                                               newFormulaA    = fst newFormulaAres
+                                                               fnl            = growUnsatisfiably (formulaB, snd newFormulaAres)
+                                                               newFormulaB    = fst fnl
+                                        where res = next gen
+                Or formulaA formulaB    -> case ((fst res) `mod` 3) of
+                                        0               -> (And (Or formulaA formulaB) newformula, snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        1               -> (Or (Or formulaA formulaB) (Not newformula), snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        2               -> (Or newFormulaA newFormulaB, snd fnl)
+                                                         where newFormulaAres = growUnsatisfiably (formulaA, snd res)
+                                                               newFormulaA    = fst newFormulaAres
+                                                               fnl            = growUnsatisfiably (formulaB, snd newFormulaAres)
+                                                               newFormulaB    = fst fnl
+                                        where res = next gen
+                Implication formulaA formulaB    -> case ((fst res) `mod` 3) of
+                                        0               -> (And (Implication formulaA formulaB) newformula, snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        1               -> (Or (Implication formulaA formulaB) (Not newformula), snd fnl)
+                                                         where fnl = randUnsatisfiableFormula (snd res)
+                                                               newformula = fst fnl
+                                        2               -> (Implication newFormulaA newFormulaB, snd fnl)
+                                                         where newFormulaAres = growUnsatisfiably (formulaA, snd res)
+                                                               newFormulaA    = fst newFormulaAres
+                                                               fnl            = growUnsatisfiably (formulaB, snd newFormulaAres)
+                                                               newFormulaB    = fst fnl
+                                        where res = next gen
+
 
 
 randTruePropositions :: Int -> RndGen -> Valuation -> ([Formula],RndGen)
@@ -50,6 +108,7 @@ randTruePropositions n gen valuation = (formula : remain, finalGen)
                                       formula = case evaluate valuation proposition of
                                                 True  -> Literal proposition
                                                 False -> Not (Literal proposition)
+
 
 randFormulas :: Int -> Int -> RndGen -> Valuation -> Formula -> ([Formula], RndGen)
 randFormulas 0 _ gen _ _ = ([], gen)
@@ -67,6 +126,20 @@ randFormulas n branching gen valuation formula = (expandedFormula : remainingFor
                                               remainingFormulas  = fst remainingFormulaRes
                                               finalGen           = snd remainingFormulaRes
 
+randUnsatisfiableFormulas :: Int -> Int  -> RndGen -> Formula -> ([Formula], RndGen)
+randUnsatisfiableFormulas 0 _ gen _ = ([], gen)
+randUnsatisfiableFormulas n branching gen formula = (expandedFormula : remainingFormulas, finalGen)
+                                where expandedFormulaRes = growBranchUnsatisfiably branching (formula, gen)
+                                      expandedFormula    = fst expandedFormulaRes
+                                      genA               = snd expandedFormulaRes
+                                      newFormulaRes      = randUnsatisfiableFormula genA
+                                      newFormula         = fst newFormulaRes
+                                      genB               = snd newFormulaRes
+                                      remainingFormulaRes= randUnsatisfiableFormulas (n-1) branching genB newFormula
+                                      remainingFormulas  = fst remainingFormulaRes
+                                      finalGen           = snd remainingFormulaRes
+
+
 genFormulas :: Int -> Int -> RndGen -> ([Formula], RndGen)
 genFormulas n branching gen = randFormulas n branching finalGen newvaluation newformula
                         where newvaluationRes = randValuation gen
@@ -75,6 +148,12 @@ genFormulas n branching gen = randFormulas n branching finalGen newvaluation new
                               newformulaRes   = randTrueFormula genA newvaluation
                               newformula      = fst newformulaRes
                               finalGen        = snd newformulaRes
+
+genUnsatisfiableFormulas :: Int -> Int -> RndGen -> ([Formula], RndGen)
+genUnsatisfiableFormulas n branching gen = randUnsatisfiableFormulas n branching finalGen newFormula
+                        where newFormulaRes = randUnsatisfiableFormula gen
+                              finalGen      = snd newFormulaRes
+                              newFormula    = fst newFormulaRes
 
 randValuation :: RndGen -> (Valuation, RndGen)
 randValuation gen = (Valuation resbA resbB resbC, finalGen)
@@ -214,6 +293,10 @@ prettify (x:xs) = (show x) ++ "\n" ++ (prettify xs)
 growBranch 0 _ res = res
 growBranch n valuation res = growBranch (n-1) valuation (grow valuation res) 
 
+growBranchUnsatisfiably :: Int -> (Formula, RndGen) -> (Formula, RndGen)
+growBranchUnsatisfiably 0  res = res
+growBranchUnsatisfiably n res = growBranchUnsatisfiably (n-1) (growUnsatisfiably res)
+
 result = grow (Valuation True True True) ((Literal P), (RndGen 1))
 
 interactWith function inputFile outputFile = do
@@ -221,26 +304,51 @@ interactWith function inputFile outputFile = do
         writeFile outputFile (function input)
 
 printIntro = do
-            putStrLn "GopiandCode's Satisfiable Propositional Logic Formula Generator"
-            putStrLn "This simple tool will generate a set of satisfiable propositional logic formulae."
-            putStrLn "You can customize the complexity of the constructed formula by increasing the branching amount."
+            putStrLn "    GopiandCode's Satisfiable Propositional Logic Formula Generator   "
+            putStrLn " ====================================================================="
+            putStrLn " This simple tool will generate a set of (un/)satisfiable propositional"
+            putStrLn " logic formulae."
+            putStrLn " You can customize the complexity of the constructed formula by "
+            putStrLn " increasing the branching amount."
+            putStrLn " "
+            putStrLn " Command Line Parameters" 
+            putStrLn " propositional_generator count complexity output [seed]"
+            putStrLn " where"
+            putStrLn "     count"
+            putStrLn "        - the number of formula to generate"
+            putStrLn "     complexity"
+            putStrLn "        - the number of formula to generate"
+            putStrLn "     output"
+            putStrLn "        - the output file - will be overwritten if exists"
+            putStrLn "     seed"
+            putStrLn "        - optional - the seed used for generating random formula"
+            
 getCount = do
-            putStrLn "How many formula would you like to generate?"
+            putStrLn " How many formula would you like to generate?"
             result <- getLine
             case (readMaybe result) :: Maybe Int  of
                         (Just x) -> do
                                        return x
                         Nothing  -> do
-                                        putStrLn "Sorry - that wasn't a valid integral value. Please try again."
+                                        putStrLn " Sorry - that wasn't a valid integral value. Please try again."
                                         getCount
+getType       = do
+            putStrLn " Do you want to make a [s]atisfiable or [u]nsatisfiable formula:"
+            result  <- getLine
+            case result !! 0 of
+                's'             -> return genFormulas
+                'u'             -> return genUnsatisfiableFormulas
+                _               -> do
+                                        putStrLn " Please answer [s]atisfiable or [u]nsatisfiable:"
+                                        getType
 getComplexity = do
-            putStrLn "How complex should the formulae be? (3 is about right, though feel free to experiment)"
+            putStrLn " How complex should the formulae be? (3 is about right, though feel free to experiment)"
             result <- getLine
             case (readMaybe result) :: Maybe Int  of
                         (Just x) -> do
                                         return x
                         Nothing  -> do
-                                        putStrLn "Sorry - that wasn't a valid integral value. Please try again."
+                                        putStrLn " Sorry - that wasn't a valid integral value. Please try again."
                                         getComplexity
 
 getOutputFile = do
@@ -253,16 +361,28 @@ main = do
           [count,complexity,output]   ->  writeFile output $ prettify $ fst (genFormulas countValue complexityValue (RndGen 3))
                                                         where countValue      = read (count) :: Int 
                                                               complexityValue = read (complexity) :: Int
+          ["--unsatisfiable", count,complexity,output]   ->  writeFile output $ prettify $ fst (genUnsatisfiableFormulas countValue complexityValue (RndGen 3))
+                                                        where countValue      = read (count) :: Int 
+                                                              complexityValue = read (complexity) :: Int
+ 
           [count,complexity,output, seed]   ->  writeFile output $ prettify $ fst (genFormulas countValue complexityValue (RndGen $ toInteger seedValue))
                                                         where countValue      = read (count) :: Int 
                                                               complexityValue = read (complexity) :: Int
                                                               seedValue       = read (seed) :: Int
+
+          ["--unsatisfiable",count,complexity,output, seed]   ->  writeFile output $ prettify $ fst (genUnsatisfiableFormulas countValue complexityValue (RndGen $ toInteger seedValue))
+                                                        where countValue      = read (count) :: Int 
+                                                              complexityValue = read (complexity) :: Int
+                                                              seedValue       = read (seed) :: Int
+
+
           _                -> do
                                  printIntro
                                  countValue <- getCount
                                  complexityValue <- getComplexity
                                  output <- getOutputFile
-                                 writeFile output $ prettify $ fst (genFormulas countValue complexityValue (RndGen 3))
+                                 function <- getType
+                                 writeFile output $ prettify $ fst (function countValue complexityValue (RndGen 3))
                                 
 
 
