@@ -3,6 +3,7 @@ import Text.Read (readMaybe)
 import Data.List (foldl')
 import System.Process (callCommand)
 import System.Directory (doesFileExist)
+import qualified Control.Exception 
 
 data Variable = P | Q | R
 data Formula = Literal Variable | Not Formula | And Formula Formula | Or Formula Formula | Implication Formula Formula
@@ -341,7 +342,7 @@ printIntro = do
             putStrLn "     seed"
             putStrLn "        - seed used to generate formula"
             putStrLn " Note: Due to the terrible design I've used for accepting inputs, the"
-            putStrLn " 	     only accepted permuations of arguments are: "
+            putStrLn "       only accepted permuations of arguments are: "
             putStrLn " propositional_generator --test count"
             putStrLn " propositional_generator --test count seed"
             putStrLn " propositional_generator --test count complexity seed"
@@ -408,6 +409,7 @@ splitInput (x:xs) = if checkForSatisifiable x
 interpretOutputFile = do
                 content <- readFile "output.txt" 
                 let resultLines = lines content
+                Control.Exception.evaluate $ length resultLines
                 return $ splitInput resultLines
 
 generateSatisfiable gen inputSize complexityValue = do
