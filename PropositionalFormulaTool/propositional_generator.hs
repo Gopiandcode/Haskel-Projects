@@ -253,7 +253,7 @@ grow valuation (formula, gen) = case formula of
                                                                       genC             = snd shouldNegateRes
                                                         2 -> case shouldNegate of
                                                                         True ->  (Implication (Literal variable) (Literal a), genC)
-                                                                        False -> (Implication (Not (Literal a)) (Literal variable), genC)
+                                                                        False -> (Implication (Not (Literal a)) (Not (Literal variable)), genC)
 --                                                                where (shouldNegate, gen) = randBool gen
                                                                 where shouldNegateRes  = randBool genB
                                                                       shouldNegate     = fst shouldNegateRes
