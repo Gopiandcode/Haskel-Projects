@@ -1,0 +1,10 @@
+((((r^-r)v(r^-r))^-(r^-r))^-(p^-p)) is a binary.  ((((r^-r)v(r^-r))^-(r^-r))^-(p^-p)) is not satisfiable.
+((((q^(rv-r))^-(qv(q^-q)))v(q^-q))v(q^-q)) is a binary.  ((((q^(rv-r))^-(qv(q^-q)))v(q^-q))v(q^-q)) is not satisfiable.
+((((q^-q)^-(r^-r))^-((p^-p)v(r^-r)))^-(r^-r)) is a binary.  ((((q^-q)^-(r^-r))^-((p^-p)v(r^-r)))^-(r^-r)) is not satisfiable.
+((((p^-p)^-(q^-q))^-((q^-q)v(r^-r)))v(q^-q)) is a binary.  ((((p^-p)^-(q^-q))^-((q^-q)v(r^-r)))v(q^-q)) is not satisfiable.
+((((r^(p>p))^-(r^(rv-r)))^-(r^-r))v(r^-r)) is a binary.  ((((r^(p>p))^-(r^(rv-r)))^-(r^-r))v(r^-r)) is not satisfiable.
+((((p^-p)v(p^-p))^-(q^-q))^-((q^-q)v(r^-r))) is a binary.  ((((p^-p)v(p^-p))^-(q^-q))^-((q^-q)v(r^-r))) is not satisfiable.
+((((rv(r^-r))^-(r^(p>p)))^-(q^-q))^-(r^-r)) is a binary.  ((((rv(r^-r))^-(r^(p>p)))^-(q^-q))^-(r^-r)) is not satisfiable.
+((((r^-r)v(p^-p))v(p^-p))^-(q^-q)) is a binary.  ((((r^-r)v(p^-p))v(p^-p))^-(q^-q)) is not satisfiable.
+((((q^-q)^-(q^-q))v(r^-r))v(q^-q)) is a binary.  ((((q^-q)^-(q^-q))v(r^-r))v(q^-q)) is not satisfiable.
+((((r^(p>p))^-(r^(rv-r)))^-(r^-r))v(r^-r)) is a binary.  ((((r^(p>p))^-(r^(rv-r)))^-(r^-r))v(r^-r)) is not satisfiable.

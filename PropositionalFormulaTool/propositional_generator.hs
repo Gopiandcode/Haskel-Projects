@@ -1,5 +1,9 @@
 import System.Environment (getArgs)
 import Text.Read (readMaybe)
+import Data.List (foldl')
+import System.Process (callCommand)
+import System.Directory (doesFileExist)
+import qualified Control.Exception 
 
 data Variable = P | Q | R
 data Formula = Literal Variable | Not Formula | And Formula Formula | Or Formula Formula | Implication Formula Formula
@@ -68,10 +72,10 @@ growUnsatisfiably (formula, gen) = case formula of
                                                                newFormulaB    = fst fnl
                                         where res = next gen
                 Or formulaA formulaB    -> case ((fst res) `mod` 3) of
-                                        0               -> (And (Or formulaA formulaB) newformula, snd fnl)
+                                        0               -> (And (Or formulaA formulaB) (Not newformula), snd fnl)
                                                          where fnl = randUnsatisfiableFormula (snd res)
                                                                newformula = fst fnl
-                                        1               -> (Or (Or formulaA formulaB) (Not newformula), snd fnl)
+                                        1               -> (Or (Or formulaA formulaB) newformula, snd fnl)
                                                          where fnl = randUnsatisfiableFormula (snd res)
                                                                newformula = fst fnl
                                         2               -> (Or newFormulaA newFormulaB, snd fnl)
@@ -81,10 +85,10 @@ growUnsatisfiably (formula, gen) = case formula of
                                                                newFormulaB    = fst fnl
                                         where res = next gen
                 Implication formulaA formulaB    -> case ((fst res) `mod` 3) of
-                                        0               -> (And (Implication formulaA formulaB) newformula, snd fnl)
+                                        0               -> (And (Implication formulaA formulaB) (Not newformula), snd fnl)
                                                          where fnl = randUnsatisfiableFormula (snd res)
                                                                newformula = fst fnl
-                                        1               -> (Or (Implication formulaA formulaB) (Not newformula), snd fnl)
+                                        1               -> (Or (Implication formulaA formulaB) newformula, snd fnl)
                                                          where fnl = randUnsatisfiableFormula (snd res)
                                                                newformula = fst fnl
                                         2               -> (Implication newFormulaA newFormulaB, snd fnl)
@@ -248,8 +252,8 @@ grow valuation (formula, gen) = case formula of
                                                                       shouldNegate     = fst shouldNegateRes
                                                                       genC             = snd shouldNegateRes
                                                         2 -> case shouldNegate of
-                                                                        True ->  (Implication (Not (Literal variable)) (Not (Literal a)), genC)
-                                                                        False -> (Implication (Literal a) (Literal variable), genC)
+                                                                        True ->  (Implication (Literal variable) (Literal a), genC)
+                                                                        False -> (Implication (Not (Literal a)) (Not (Literal variable)), genC)
 --                                                                where (shouldNegate, gen) = randBool gen
                                                                 where shouldNegateRes  = randBool genB
                                                                       shouldNegate     = fst shouldNegateRes
@@ -322,6 +326,28 @@ printIntro = do
             putStrLn "        - the output file - will be overwritten if exists"
             putStrLn "     seed"
             putStrLn "        - optional - the seed used for generating random formula"
+	    putStrLn " "
+	    putStrLn " you can also use the system to test propositional satisfiability "
+            putStrLn " checkers which conform to a specific format."
+            putStrLn " "
+            putStrLn " propositional_generator --test count [inputSize] [complexity] [seed]"
+            putStrLn " where"
+            putStrLn "     count"
+            putStrLn "        - the number of tests to run"
+            putStrLn "     inputSize"
+            putStrLn "        - the number of formulas per file submitted to the parser - "
+	    putStrLn "          defaults to 10"
+            putStrLn "     complexity"
+            putStrLn "        - roughly related to the size of the formulas - defaults to 3"
+            putStrLn "     seed"
+            putStrLn "        - seed used to generate formula"
+            putStrLn " Note: Due to the terrible design I've used for accepting inputs, the"
+            putStrLn "       only accepted permuations of arguments are: "
+            putStrLn " propositional_generator --test count"
+            putStrLn " propositional_generator --test count seed"
+            putStrLn " propositional_generator --test count complexity seed"
+            putStrLn " propositional_generator --test count inputSize complexity seed"
+
             
 getCount = do
             putStrLn " How many formula would you like to generate?"
@@ -355,13 +381,114 @@ getOutputFile = do
             putStrLn "Where should I write the file to? (if it exists I'll overwrite it)"
             getLine
 
+-- checkFileFor words filename = do
+--			content <- readFile filename
+--			let resultLines = lines content
+
+-- LastN elements function
+-- Reference: https://stackoverflow.com/questions/17252851/how-do-i-take-the-last-n-elements-of-a-list
+lastN :: Int -> [a] -> [a]
+lastN n xs = foldl' (const . drop 1) xs (drop n xs)
+
+checkFileFor required line = lastN (length requiredWords) inputwords == requiredWords
+                        where requiredWords = words required
+                              inputwords    = words line
+
+checkForSatisifiable = checkFileFor "is satisfiable."
+checkForUnsatisifiable = checkFileFor "is not satisfiable."
+
+splitInput :: [String] -> ([String], [String], [String])
+splitInput [] = ([],[],[])
+splitInput (x:xs) = if checkForSatisifiable x 
+                                then (x:remainingSatisfiable, remainingUnsatisfiable, remainingUnknown)
+                    else if checkForUnsatisifiable x
+                                then (remainingSatisfiable, x:remainingUnsatisfiable, remainingUnknown)
+                    else (remainingSatisfiable, remainingUnsatisfiable, x:remainingUnknown)
+                        where (remainingSatisfiable, remainingUnsatisfiable, remainingUnknown) = splitInput xs
+
+interpretOutputFile = do
+                content <- readFile "output.txt" 
+                let resultLines = lines content
+                Control.Exception.evaluate $ length resultLines
+                return $ splitInput resultLines
+
+generateSatisfiable gen inputSize complexityValue = do
+                                         let res = (genFormulas inputSize complexityValue gen)
+                                         writeFile "input.txt" $ prettify $ fst res
+                                         return $ snd res
+
+generateUnsatisfiable gen inputSize complexityValue = do
+                                         let res = (genUnsatisfiableFormulas inputSize complexityValue gen)
+                                         writeFile "input.txt" $ prettify $ fst res
+                                         return $ snd res
+
+testSatisfiable inputSize complexityValue ((sat, unsat, un), gen) = do
+                                                genA <- generateSatisfiable gen inputSize complexityValue
+                                                callCommand "./main.exe"
+                                                (newSat, newUnsat, newUn) <- interpretOutputFile
+                                                return ((sat, newUnsat ++ unsat, newUn ++ un), genA)
+
+testUnsatisfiable inputSize complexityValue ((sat, unsat, un), gen) = do
+                                                genA <- generateUnsatisfiable gen inputSize complexityValue
+                                                callCommand "./main.exe"
+                                                (newSat, newUnsat, newUn) <- interpretOutputFile
+                                                return ((newSat ++ sat, unsat, newUn ++ un), genA)
+
+storeResults (sat, unsat, un) = do
+                                callCommand "touch falseSatisfiables.txt"
+                                callCommand "touch falseUnsatisfiables.txt"
+                                callCommand "touch unknownResults.txt"
+                                appendFile "falseSatisfiables.txt" $ unlines sat
+                                appendFile "falseUnsatisfiables.txt" $ unlines unsat 
+                                appendFile "unknownResults.txt" $ unlines un
+                                
+
+printResults testCount (sat, unsat, un) = do
+                                        putStrLn $ " Of " ++ (show testCount) ++ " tests run:"
+                                        putStrLn $ "      " ++ (show $ length sat) ++   "   - were incorrectly identified as satisfiable when not."
+                                        putStrLn $ "      " ++ (show $ length unsat) ++ "   - were incorrectly identified as unsatisfiable when not."
+                                        putStrLn $ "      " ++ (show $ length un) ++    "   - produced unknown results."
+                                        putStrLn $ " Happy debugging!"
+
+
+internalRunTestSuite 0 inputSize complexityValue ((sat, unsat, un), gen) = do
+                                                                                return ((sat, unsat, un), gen)
+internalRunTestSuite count inputSize complexityValue ((sat, unsat, un), gen) = do
+                                                                        ((satA,unsatA,unA), genA) <- testSatisfiable inputSize complexityValue ((sat,unsat,un),gen)
+                                                                        ((satB,unsatB,unB), genB) <- testUnsatisfiable inputSize complexityValue ((satA,unsatA,unA),genA)
+                                                                        internalRunTestSuite (count-1) inputSize complexityValue ((satB, unsatB, unB), genB)
+
+runTests :: Int -> Int -> Int -> Integer -> IO ([String],[String],[String])
+runTests count inputSize complexityValue seed = do 
+                                                 res <- internalRunTestSuite count inputSize complexityValue (([],[],[]), (RndGen seed))
+                                                 return $ fst res
+
+runTestSuite count inputSize complexityValue seed = do
+                                        results <- runTests count inputSize complexityValue seed
+                                        printResults count results
+                                        storeResults results
+
 main = do
       args <- getArgs
       case args of
-          [count,complexity,output]   ->  writeFile output $ prettify $ fst (genFormulas countValue complexityValue (RndGen 3))
+          ["--test",count]  -> runTestSuite countValue 10 3 25
+                                                        where countValue      = read (count) :: Int 
+          ["--test",count,seed]  -> runTestSuite countValue 10 3 (toInteger seedValue)
+                                                        where countValue      = read (count) :: Int 
+                                                              seedValue       = read (seed) :: Int
+          ["--test",count,complexity,seed]  -> runTestSuite countValue 10 complexityValue (toInteger seedValue)
                                                         where countValue      = read (count) :: Int 
                                                               complexityValue = read (complexity) :: Int
-          ["--unsatisfiable", count,complexity,output]   ->  writeFile output $ prettify $ fst (genUnsatisfiableFormulas countValue complexityValue (RndGen 3))
+                                                              seedValue       = read (seed) :: Int
+          ["--test",count,inputSize,complexity,seed]  -> runTestSuite countValue inputSizeValue complexityValue (toInteger seedValue)
+                                                        where countValue      = read (count) :: Int 
+                                                              inputSizeValue  = read (inputSize) :: Int 
+                                                              complexityValue = read (complexity) :: Int
+                                                              seedValue       = read (seed) :: Int
+          [count,complexity,output]   ->  writeFile output $ prettify $ fst (genFormulas countValue complexityValue (RndGen 25))
+                                                        where countValue      = read (count) :: Int 
+                                                              complexityValue = read (complexity) :: Int
+          ["--unsatisfiable", count,complexity,output]   ->  writeFile output $ prettify $ fst (genUnsatisfiableFormulas countValue complexityValue (RndGen 25))
                                                         where countValue      = read (count) :: Int 
                                                               complexityValue = read (complexity) :: Int
  
