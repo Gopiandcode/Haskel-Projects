@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module HashTable where
+module HashMap where
 import Data.List
 import Control.Monad
 import Data.Char
